@@ -1,30 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendar</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: transparent; font-family: -apple-system, sans-serif; display: flex; justify-content: center; padding: 1rem; }
-.cal { width: 100%; max-width: 320px; }
-.cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-.cal-title { font-size: 14px; font-weight: 500; color: #fff; letter-spacing: 0.06em; }
-.cal-nav button { background: none; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; width: 26px; height: 26px; cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.6); }
-.cal-nav button:hover { background: rgba(255,255,255,0.1); }
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-.cal-dow { text-align: center; font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.3); padding: 5px 0; letter-spacing: 0.06em; }
-.cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 12px; color: rgba(255,255,255,0.5); border-radius: 6px; }
-.cal-day.today { background: #fff; color: #000; font-weight: 500; }
-.cal-day.other-month { color: rgba(255,255,255,0.15); }
+html, body { width: 100%; height: 100%; background: transparent; }
+body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; justify-content: center; align-items: flex-start; padding: 16px; }
+.cal { width: 100%; max-width: 300px; }
+.cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.cal-title { font-size: 13px; font-weight: 500; color: #ffffff; letter-spacing: 0.08em; }
+.cal-nav { display: flex; gap: 4px; }
+.cal-nav button { background: none; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; width: 24px; height: 24px; cursor: pointer; font-size: 11px; color: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; }
+.cal-nav button:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+.cal-dow { text-align: center; font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.25); padding: 4px 0; letter-spacing: 0.08em; }
+.cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 11px; color: rgba(255,255,255,0.45); border-radius: 5px; }
+.cal-day.today { background: #ffffff; color: #000000; font-weight: 600; }
+.cal-day.other-month { color: rgba(255,255,255,0.12); }
 </style>
 </head>
 <body>
 <div class="cal">
   <div class="cal-header">
-    <span class="cal-title" id="cal-title"></span>
-    <div class="cal-nav" style="display:flex;gap:4px;">
-      <button onclick="changeMonth(-1)">←</button>
-      <button onclick="changeMonth(1)">→</button>
+    <span id="cal-title"></span>
+    <div class="cal-nav">
+      <button onclick="changeMonth(-1)">&#8592;</button>
+      <button onclick="changeMonth(1)">&#8594;</button>
     </div>
   </div>
   <div class="cal-grid" id="cal-grid">
@@ -38,36 +41,53 @@ body { background: transparent; font-family: -apple-system, sans-serif; display:
   </div>
 </div>
 <script>
-const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-let cur = new Date(new Date().toLocaleString('en-US', {timeZone: 'Asia/Taipei'}));
+var MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+function getTaipeiDate() {
+  var now = new Date();
+  var utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  return new Date(utc + (8 * 3600000));
+}
+
+var taipeiNow = getTaipeiDate();
+var cur = new Date(taipeiNow.getFullYear(), taipeiNow.getMonth(), 1);
 
 function render() {
-  const year = cur.getFullYear();
-  const month = cur.getMonth();
-  const todayTW = new Date(new Date().toLocaleString('en-US', {timeZone: 'Asia/Taipei'}));
-  document.getElementById('cal-title').textContent = `${year}  ${MONTHS[month]}`;
-  const grid = document.getElementById('cal-grid');
-  grid.querySelectorAll('.cal-day').forEach(d => d.remove());
-  const first = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const daysInPrev = new Date(year, month, 0).getDate();
-  for (let i = 0; i < first; i++) {
-    const d = document.createElement('div');
+  var year = cur.getFullYear();
+  var month = cur.getMonth();
+  var today = getTaipeiDate();
+
+  document.getElementById('cal-title').textContent = year + '  ' + MONTHS[month];
+
+  var grid = document.getElementById('cal-grid');
+  var days = grid.querySelectorAll('.cal-day');
+  for (var i = 0; i < days.length; i++) days[i].remove();
+
+  var first = new Date(year, month, 1).getDay();
+  var daysInMonth = new Date(year, month + 1, 0).getDate();
+  var daysInPrev = new Date(year, month, 0).getDate();
+
+  for (var i = 0; i < first; i++) {
+    var d = document.createElement('div');
     d.className = 'cal-day other-month';
     d.textContent = daysInPrev - first + i + 1;
     grid.appendChild(d);
   }
-  for (let d = 1; d <= daysInMonth; d++) {
-    const el = document.createElement('div');
+
+  for (var d = 1; d <= daysInMonth; d++) {
+    var el = document.createElement('div');
     el.className = 'cal-day';
     el.textContent = d;
-    if (d === todayTW.getDate() && month === todayTW.getMonth() && year === todayTW.getFullYear()) el.classList.add('today');
+    if (d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+      el.classList.add('today');
+    }
     grid.appendChild(el);
   }
-  const total = first + daysInMonth;
-  const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
-  for (let i = 1; i <= remaining; i++) {
-    const d = document.createElement('div');
+
+  var total = first + daysInMonth;
+  var remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (var i = 1; i <= remaining; i++) {
+    var d = document.createElement('div');
     d.className = 'cal-day other-month';
     d.textContent = i;
     grid.appendChild(d);
